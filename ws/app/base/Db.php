@@ -36,4 +36,4 @@ class DB {
 }
 
 // Configuration
-$db = new DB('localhost', 'tp_flight', 'root', '');
+$db = new DB('localhost', 'tp_flight', 'ETU003298', '');
