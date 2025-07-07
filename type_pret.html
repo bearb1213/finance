@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Creation de type de prêt</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, button { margin: 5px; padding: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+
+  <h1>Creation de type de prêt</h1>
+
+  <div>
+    <input type="hidden" id="id">
+    <input type="number" id="duree" placeholder="duree">
+    <input type="text" id="taux" placeholder="taux">
+    <button onclick="ajouterOuModifier()">Ajouter / Modifier</button>
+  </div>
+
+  <table id="table-type-pret">
+    <thead>
+      <tr>
+        <th>ID</th><th>Duree</th><th>Taux</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const apiBase = "http://localhost/ExamS4Web/finance/ws";
+
+    function ajax(method, url, data, callback) {
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, apiBase + url, true);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          callback(JSON.parse(xhr.responseText));
+        }
+      };
+      xhr.send(data);
+    }
+
+    function chargerTypePret() {
+      ajax("GET", "/type_pret", null, (data) => {
+        const tbody = document.querySelector("#table-type-pret tbody");
+        tbody.innerHTML = "";
+        data.forEach(e => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${e.id}</td>
+            <td>${e.duree}</td>
+            <td>${e.taux}</td>
+            <td>
+              <button onclick='remplirFormulaire(${JSON.stringify(e)})'>✏️</button>
+              <button onclick='supprimerEtudiant(${e.id})'>🗑️</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    function ajouterOuModifier() {
+      const id = document.getElementById("id").value;
+      const duree = document.getElementById("duree").value;
+      const taux = document.getElementById("taux").value;
+      const data = `duree=${encodeURIComponent(duree)}&taux=${encodeURIComponent(taux)}`;
+
+      if (id) {
+        ajax("PUT", `/type_pret/${id}`, data, () => {
+          resetForm();
+          chargerTypePret();
+        });
+      } else {
+        ajax("POST", "/type_pret", data, () => {
+          resetForm();
+          chargerTypePret();
+        });
+      }
+    }
+
+    function remplirFormulaire(e) {
+      document.getElementById("id").value = e.id;
+      document.getElementById("duree").value = e.duree;
+      document.getElementById("taux").value = e.taux;
+    }
+
+    function supprimerEtudiant(id) {
+      if (confirm("Supprimer ce type de prêt ?")) {
+        ajax("DELETE", `/type_pret/${id}`, null, () => {
+          chargerTypePret();
+        });
+      }
+    }
+
+    function resetForm() {
+      document.getElementById("id").value = "";
+      document.getElementById("duree").value = "";
+      document.getElementById("taux").value = "";
+    }
+
+    chargerTypePret();
+  </script>
+
+</body>
+</html>

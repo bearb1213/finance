@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gestion Crédit/Débit</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+  <h1 class="mb-4">Créditer / Débiter un compte</h1>
+
+  <div class="card p-4 mb-4 shadow-sm">
+
+    <div class="mb-3">
+      <label for="id_compte" class="form-label">Sélectionner un compte</label>
+      <select id="id_compte" class="form-select">
+        <option value="">-- Choisir un compte --</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="montant" class="form-label">Montant</label>
+      <input type="number" step="0.01" class="form-control" id="montant" placeholder="Ex : 1000.00" />
+    </div>
+
+    <div class="d-flex gap-2">
+      <button class="btn btn-success flex-fill" onclick="effectuerTransaction('crediter')">Créditer</button>
+      <button class="btn btn-danger flex-fill" onclick="effectuerTransaction('debiter')">Débiter</button>
+    </div>
+  </div>
+
+  <div id="message" class="alert d-none"></div>
+</div>
+
+<script>
+  const apiBase = "http://localhost/ExamS4Web/finance/ws";
+  function chargerComptes() {
+    const select = document.getElementById("id_compte");
+    select.innerHTML = '<option value="">-- Choisir un compte --</option>';
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", apiBase + "/comptes", true);
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const comptes = JSON.parse(xhr.responseText);
+        comptes.forEach(compte => {
+          const option = document.createElement("option");
+          option.value = compte.id;
+          option.textContent = `${compte.numero} (Solde: ${compte.solde} )`;
+          select.appendChild(option);
+        });
+      } else {
+        afficherMessage("Erreur lors du chargement des comptes", "danger");
+      }
+    };
+    xhr.send();
+  }
+
+  function ajax(method, url, data, callback, errorCallback) {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, apiBase + url, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          callback(JSON.parse(xhr.responseText));
+        } else {
+          errorCallback && errorCallback(xhr.responseText);
+        }
+      }
+    };
+    xhr.send(data);
+  }
+
+  function effectuerTransaction(type) {
+    const id_compte = document.getElementById("id_compte").value.trim();
+    const montant = document.getElementById("montant").value.trim();
+
+    if (!id_compte) {
+      alert("Veuillez choisir un compte.");
+      return;
+    }
+    if (!montant || montant <= 0) {
+      alert("Veuillez entrer un montant valide.");
+      return;
+    }
+
+    const data = `id_compte=${encodeURIComponent(id_compte)}&montant=${encodeURIComponent(montant)}`;
+
+    ajax("POST", `/transaction/${type}`, data, (res) => {
+      afficherMessage(res.message, "success");
+      resetForm();
+      chargerComptes();
+    }, (err) => {
+      let msg = "Erreur inconnue";
+      try {
+        const errObj = JSON.parse(err);
+        msg = errObj.error || msg;
+      } catch {}
+      afficherMessage(msg, "danger");
+    });
+  }
+
+  function afficherMessage(text, type) {
+    const msgDiv = document.getElementById("message");
+    msgDiv.textContent = text;
+    msgDiv.className = `alert alert-${type}`;
+    msgDiv.classList.remove("d-none");
+    setTimeout(() => msgDiv.classList.add("d-none"), 4000);
+  }
+
+  function resetForm() {
+    document.getElementById("id_compte").value = "";
+    document.getElementById("montant").value = "";
+  }
+
+  chargerComptes();
+</script>
+</body>
+</html>

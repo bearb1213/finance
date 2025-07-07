@@ -47,12 +47,19 @@ CREATE TABLE finance_fond(
    PRIMARY KEY(id)
 );
 
+CREATE TABLE finance_type_remboursement(
+   id INT AUTO_INCREMENT,
+   libelle VARCHAR(50),
+   PRIMARY KEY(id)
+);
+
 CREATE TABLE finance_compte(
    id INT AUTO_INCREMENT,
    date_in DATETIME,
    solde DECIMAL(15,2),
    id_client INT NOT NULL,
    id_type INT NOT NULL,
+   numero VARCHAR(50),
    PRIMARY KEY(id),
    FOREIGN KEY(id_client) REFERENCES finance_client(id),
    FOREIGN KEY(id_type) REFERENCES finance_type_compte(id)
@@ -74,19 +81,26 @@ CREATE TABLE finance_pret(
    montant DECIMAL(15,2),
    date_in DATETIME,
    motif TEXT,
+   id_type_remboursement INT NOT NULL,
    id_compte INT NOT NULL,
    id_type INT NOT NULL,
    PRIMARY KEY(id),
+   FOREIGN KEY(id_type_remboursement) REFERENCES finance_type_remboursement(id),
    FOREIGN KEY(id_compte) REFERENCES finance_compte(id),
    FOREIGN KEY(id_type) REFERENCES finance_type_pret(id)
 );
 
-CREATE TABLE finance_remboursement(
-   id INT AUTO_INCREMENT,
-   montant DECIMAL(15,2),
-   date_in DATETIME,
-   reste DECIMAL(15,2),
+CREATE TABLE finance_remboursement (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   date_echeance DATE NOT NULL,           -- Date prévue de paiement (ex. : 2025-07-01)
+   montant_annuite DECIMAL(15,2) NOT NULL, -- Montant total payé pour cette échéance (fixe si annuité constante)
+   interet DECIMAL(15,2) NOT NULL,         -- Part correspondant aux intérêts
+   amortissement DECIMAL(15,2) NOT NULL,   -- Part correspondant au remboursement du capital
+   capital_restant DECIMAL(15,2) NOT NULL, -- Capital restant dû après ce paiement
+   date_payee DATE DEFAULT NULL,           -- Date à laquelle le paiement a été réellement effectué (null = pas encore payé)
    id_pret INT NOT NULL,
-   PRIMARY KEY(id),
    FOREIGN KEY(id_pret) REFERENCES finance_pret(id)
 );
+
+
+
