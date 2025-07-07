@@ -50,6 +50,7 @@ CREATE TABLE finance_fond(
 CREATE TABLE finance_compte(
    id INT AUTO_INCREMENT,
    date_in DATETIME,
+   numero VARCHAR(20) UNIQUE,
    solde DECIMAL(15,2),
    id_client INT NOT NULL,
    id_type INT NOT NULL,
@@ -68,6 +69,7 @@ CREATE TABLE finance_transaction(
    FOREIGN KEY(id_compte) REFERENCES finance_compte(id),
    FOREIGN KEY(id_type) REFERENCES finance_type_transaction(id)
 );
+
 
 CREATE TABLE finance_pret(
    id INT AUTO_INCREMENT,
@@ -90,3 +92,4 @@ CREATE TABLE finance_remboursement(
    PRIMARY KEY(id),
    FOREIGN KEY(id_pret) REFERENCES finance_pret(id)
 );
+

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestion des étudiants</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, button { margin: 5px; padding: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+
+  <h1>Pret</h1>
+
+  <div>
+    <p id="message"></p>
+    <input type="text" id="numero" placeholder="Numero">
+    <input type="number" id="montant" placeholder="Montant" step="0.01">
+    <textarea name="motif" id="motif" cols="30" rows="10"></textarea>
+    <select name="type" id="type">
+
+    </select>
+    
+    <button onclick="ajouter()">Soumettre demande</button>
+  </div>
+  <div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Numero</th>
+        <th>Montant</th>
+        <th>Motif</th>
+        <th>Duree</th>
+        <th>Taux</th>
+      </tr>
+    </thead>
+    <tbody id="pret-list">
+      
+    </tbody>
+  </table>  
+  </div>
+
+  <script>
+    const apiBase = "http://localhost/ETU003317/ExamFinalS4/git/finance/ws";
+
+    function ajax(method, url, data, callback) {
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, apiBase + url, true);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          callback(JSON.parse(xhr.responseText));
+        }
+      };
+      xhr.send(data);
+    }
+
+    function chargerType(){
+      ajax("GET", "/pret/types", null, (data) => {
+        const select = document.getElementById("type");
+        select.innerHTML = "";
+        data.forEach(e => {
+          const option = document.createElement("option");
+          option.value = e.id;
+          option.textContent = e.duree+" mois - "+e.taux+" %";
+          select.appendChild(option);
+        });
+      });
+    }
+
+    function ajouter(){
+      const numero = document.getElementById("numero").value;
+      const montant = document.getElementById("montant").value;
+      const motif = document.getElementById("motif").value;
+      const type = document.getElementById("type").value;
+      const dataR = `numero=${encodeURIComponent(numero)}&montant=${encodeURIComponent(montant)}&motif=${encodeURIComponent(motif)}&type=${encodeURIComponent(type)}`;
+      
+       ajax("POST" , "/pret/save" , dataR , (data)=>{
+        document.getElementById("numero").value = "";
+        document.getElementById("montant").value = "";
+        document.getElementById("motif").value = "";
+        document.getElementById("type").value = "";
+        chargerType();
+        const message = document.getElementById("message");
+        if(data.status==='success'){
+          message.textContent = data.message;
+          message.style.color = "green";
+        } else {
+          message.textContent = data.message || "Une erreur s'est produite.";
+          message.style.color = "red";
+        }
+
+
+      })
+    }
+    function chargerPret(){
+      ajax("GET", "/pret/all", null, (data) => {
+        const tbody = document.getElementById("pret-list");
+        tbody.innerHTML = "";
+        data.forEach(e => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${e.compte_numero}</td>
+            <td>${e.montant}</td>
+            <td>${e.motif}</td>
+            <td>${e.duree} mois</td>
+            <td>${e.taux} %</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    chargerPret();
+    chargerType();
+  </script>
+
+</body>
+</html>
