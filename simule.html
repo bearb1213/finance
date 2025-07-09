@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Simulation</h1>
+    <p id="message"></p>
+    <button id="valider">valider</button>
+    <button id="refuser">refuser</button>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Mois</th>
+                <th>Ammortissement</th>
+                <th>Interet</th>
+                <th>Annuite (sans Assurance)</th>
+                <th>Assurance</th>
+                <th>Annuite total</th>
+                <th>Capitaux</th>
+            </tr>
+        </thead>
+        <tbody id="simule">
+
+        </tbody>
+    </table>
+
+<script>
+    const apiBase = "http://localhost/ETU003317/ExamFinalS4/git/finance/ws";
+
+    function ajax(method, url, data, callback) {
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, apiBase + url, true);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          callback(JSON.parse(xhr.responseText));
+        }
+      };
+      xhr.send(data);
+    }
+
+    function charger(){
+
+        const url = new URL(window.location.href);
+        const params = url.searchParams;      
+        const id = params.get("id");
+        const data =  `id=${encodeURIComponent(id)}`
+
+        
+
+        console.log(`/pret/simule?${data}`);
+        ajax("GET" ,`/pret/simule?${data}` , null, (data)=>{
+            const tbody = document.getElementById("simule");
+            const table = data.data.table;
+            console.log(table)
+            let mois= 1;
+            table.forEach(e=> {
+                const tr = document.createElement("tr");
+                tr.innerHTML= `
+                <td>${mois}</td>
+                <td>${e.ammortissement}</td>
+                <td>${e.interet}</td>
+                <td>${e.annuite}</td>
+                <td>${e.assurance}</td>
+                <td>${e.total}</td>
+                <td>${e.capitaux}</td>
+                `;
+                mois++;
+                tbody.appendChild(tr);
+            })
+        })
+        
+    }
+    const valider = document.getElementById("valider"); 
+    valider.addEventListener("click", () => {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;      
+        const id = params.get("id");
+        const dataS =  `id=${encodeURIComponent(id)}`
+
+        ajax("POST", `/pret/valider`, dataS, (data) => {
+            const message = document.getElementById("message");
+            if(data.status==='success'){
+            message.textContent = data.message;
+            message.style.color = "green";
+            } else {
+            message.textContent = data.message || "Une erreur s'est produite.";
+            message.style.color = "red";
+            }
+        });
+    });
+    const refuser = document.getElementById("refuser");
+    refuser.addEventListener("click", () => {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;      
+        const id = params.get("id");
+        const dataS =  `id=${encodeURIComponent(id)}`
+
+        ajax("POST", `/pret/refuser`, dataS, (data) => {
+            const message = document.getElementById("message");
+            if(data.status==='success'){
+            message.textContent = data.message;
+            message.style.color = "green";
+            } else {
+            message.textContent = data.message || "Une erreur s'est produite.";
+            message.style.color = "red";
+            }
+        });
+    });
+
+    charger();
+</script>
+</body>
+</html>

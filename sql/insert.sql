@@ -8,10 +8,15 @@ INSERT INTO finance_type_transaction (libelle) VALUES
 ('Retrait'),
 ('Virement');
 
-INSERT INTO finance_type_pret (duree, taux) VALUES
-(12, 3.5),
-(24, 4.0),
-(36, 4.5);
+INSERT INTO finance_type_pret (duree, taux,assurance) VALUES
+(12, 12 ,0.3 ),
+(24, 4.0 , 0.5),
+(36, 4.5 , 1);
+
+INSERT INTO finance_statut (libelle) VALUES
+('En Attente'),
+('Valide'),
+('Refuse');
 
 
 INSERT INTO finance_fond(date_in, montant_actuel) VALUES

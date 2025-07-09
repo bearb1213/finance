@@ -37,6 +37,7 @@ CREATE TABLE finance_type_pret(
    id INT AUTO_INCREMENT,
    duree INT,
    taux DECIMAL(4,2),
+   assurance DECIMAL(4,2),
    PRIMARY KEY(id)
 );
 
@@ -44,6 +45,12 @@ CREATE TABLE finance_fond(
    id INT AUTO_INCREMENT,
    date_in DATETIME,
    montant_actuel DECIMAL(19,2),
+   PRIMARY KEY(id)
+);
+
+CREATE TABLE finance_statut(
+   id INT AUTO_INCREMENT,
+   libelle VARCHAR(50),
    PRIMARY KEY(id)
 );
 
@@ -70,12 +77,12 @@ CREATE TABLE finance_transaction(
    FOREIGN KEY(id_type) REFERENCES finance_type_transaction(id)
 );
 
-
 CREATE TABLE finance_pret(
    id INT AUTO_INCREMENT,
    montant DECIMAL(15,2),
    date_in DATETIME,
    motif TEXT,
+   delai INT,
    id_compte INT NOT NULL,
    id_type INT NOT NULL,
    PRIMARY KEY(id),
@@ -83,13 +90,30 @@ CREATE TABLE finance_pret(
    FOREIGN KEY(id_type) REFERENCES finance_type_pret(id)
 );
 
-CREATE TABLE finance_remboursement(
+CREATE TABLE finance_remboursement (
+   id INT AUTO_INCREMENT PRIMARY KEY,
+   assurance DECIMAL(15,2),
+   date_echeance DATE,
+   capital_restant DECIMAL(15,2),
+   amortissement DECIMAL(15,2),
+   interet DECIMAL(15,2),
+   montant_annuite DECIMAL(15,2),
+   montant_annuite_total DECIMAL(15,2),
+   date_payee DATETIME,
+   id_pret INT NOT NULL,
+   FOREIGN KEY (id_pret) REFERENCES finance_pret(id)
+);
+
+
+CREATE TABLE finance_statut_pret(
    id INT AUTO_INCREMENT,
-   montant DECIMAL(15,2),
    date_in DATETIME,
-   reste DECIMAL(15,2),
+   id_statut INT NOT NULL,
    id_pret INT NOT NULL,
    PRIMARY KEY(id),
+   FOREIGN KEY(id_statut) REFERENCES finance_statut(id),
    FOREIGN KEY(id_pret) REFERENCES finance_pret(id)
 );
 
+
+-- 035504
